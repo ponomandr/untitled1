@@ -6,11 +6,13 @@
     };
 
     var ContextifyScript = function (code, options) {
-        this.runInContext = function () {
-            // return function that wraps the code and has some context as 'this'
+        this.runInContext = function (sandbox, options) {
+            return __Main.runInContext(code, sandbox, "init.js");
         };
 
-        this.runInThisContext = function () {
+        this.runInThisContext = function (options) {
+            // TODO: this
+            return __Main.runInContext(code, Object.create(this), "init.js");
         };
     };
 

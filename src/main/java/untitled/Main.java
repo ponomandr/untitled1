@@ -4,7 +4,9 @@ import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptObjectMirror;
 
+import javax.script.Bindings;
 import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -32,10 +34,19 @@ public class Main {
 
     private void run() throws IOException, ScriptException {
         ScriptContext ctx = scriptEngine.getContext();
+        ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("__NashornScriptEngine", scriptEngine);
+        ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("__Main", this);
         ScriptObjectMirror processFunction = eval(getResource("/init.js"), ctx);
         Object processObject = processFunction.call(processFunction, natives);
         ScriptObjectMirror nodeFunction = eval(getResource("/src/node.js"), ctx);
         nodeFunction.call(nodeFunction, processObject);
+    }
+
+
+    public void runInContext(String script, Bindings context, String fileName) throws ScriptException {
+        context.put("global", scriptEngine.getBindings(ScriptContext.ENGINE_SCOPE));
+        scriptEngine.put(ScriptEngine.FILENAME, fileName);
+        scriptEngine.eval(script, context);
     }
 
     private Map<String, String> loadNatives() throws IOException {
@@ -57,6 +68,7 @@ public class Main {
 
     private ScriptObjectMirror eval(URL resource, ScriptContext ctx) throws IOException, ScriptException {
         try (Reader reader = new InputStreamReader(resource.openStream())) {
+            scriptEngine.put(ScriptEngine.FILENAME, resource.getFile());
             return (ScriptObjectMirror) scriptEngine.eval(reader, ctx);
         }
     }
