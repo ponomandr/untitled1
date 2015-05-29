@@ -1,34 +1,13 @@
-(function (natives) {
+var natives = {};
+for (var i = 0; i < nativeModuleList.length; i++) {
+    var fileName = nativeModuleList[i];
+    var moduleName = fileName.substr(0, fileName.lastIndexOf('.js'));
+    natives[moduleName] = __Main.readResource('/lib/' + fileName);
+}
 
-    // natives is not JS object, but Java HashMap
-    natives.hasOwnProperty = function (name) {
-        return this.containsKey(name);
-    };
+var processFunction = load(__Main.getResource('/process.js'));
+var process = processFunction(natives);
 
-    var ContextifyScript = function (code, options) {
-        this.runInContext = function (sandbox, options) {
-            return __Main.runInContext(code, sandbox, "init.js");
-        };
+var nodeFunction = load(__Main.getResource('/src/node.js'));
+nodeFunction(process);
 
-        this.runInThisContext = function (options) {
-            // TODO: this
-            return __Main.runInContext(code, Object.create(this), "init.js");
-        };
-    };
-
-    return {
-        moduleLoadList: [],
-
-        binding: function (name) {
-            if (name == 'natives') {
-                return natives;
-            }
-            if (name == 'contextify') {
-                return {
-                    ContextifyScript: ContextifyScript
-                }
-            }
-            return {};
-        }
-    }
-});
