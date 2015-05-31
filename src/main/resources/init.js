@@ -16,6 +16,14 @@ for (var i = 0; i < nativeList.length; i++) {
 }
 natives.config = "#\n{}";
 
+
+function dummy(name, result) {
+    return function () {
+        print('[init.js] function "' + name + '" is not implemented');
+        return result;
+    }
+}
+
 var bindings = {
     natives: natives,
     contextify: {
@@ -32,20 +40,15 @@ var bindings = {
     },
     smalloc: {
         kMaxLength: 0x3fffffff,
-        alloc: function () {
-        },
-        truncate: function () {
-        },
-        sliceOnto: function () {
-        }
+        alloc: dummy('smalloc.alloc'),
+        truncate: dummy('smalloc.truncate'),
+        sliceOnto: dummy('smalloc.sliceOnto')
     },
     buffer: {
-        setupBufferJS: function () {
-        }
+        setupBufferJS: dummy('buffer.setupBufferJS')
     },
     fs: {
-        FSInitialize: function () {
-        }
+        FSInitialize: dummy('fs.FSInitialize')
     },
     constants: {},
     timer_wrap: {
@@ -59,32 +62,22 @@ var bindings = {
     tcp_wrap: {},
     stream_wrap: {},
     tty_wrap: {
-        isTTY: function () {
-            return false;
-        },
-        guessHandleType: function () {
-            return 'TTY';
-        },
+        isTTY: dummy('tty_wrap.isTTY', false),
+        guessHandleType: dummy('tty_wrap.guessHandleType', 'TTY'),
         TTY: function () {
-            this.shutdown = function () {
-
-            };
-            this.readStart = function () {
-
-            };
-            this.readStop = function () {
-
-            }
+            this.shutdown = dummy('tty_wrap.TTY.shutdown');
+            this.readStart = dummy('tty_wrap.TTY.readStart');
+            this.readStop = dummy('tty_wrap.TTY.readStop');
         }
     }
 };
 
 
 function binding(name) {
-    print('init.js: binding(\'' + name + '\')');
     if (bindings[name]) return bindings[name];
     throw new Error('No such module: ' + name);
 }
+
 
 var process = {
     moduleLoadList: [],
@@ -95,8 +88,7 @@ var process = {
     cwd: function () {
         return PROCESS.cwd;
     },
-    _setupNextTick: function () {
-    }
+    _setupNextTick: dummy('process._setupNextTick')
 };
 
 
