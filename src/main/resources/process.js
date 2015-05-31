@@ -1,51 +1,87 @@
-(function (natives) {
+(function (natives, PROCESS) {
 
-    var ContextifyScript = function (code, options) {
-        this.runInContext = function (sandbox, options) {
-            return __Main.runInContext(code, sandbox, "process.js");
-        };
+    var bindings = {
+        natives: natives,
+        contextify: {
+            ContextifyScript: function (code, options) {
+                this.runInContext = function (sandbox, options) {
+                    return __Main.runInContext(code, sandbox, "process.js");
+                };
 
-        this.runInThisContext = function (options) {
-            var fileName = options ? options.fileName : '<<eval>>';
-            return eval(code);
-        };
+                this.runInThisContext = function (options) {
+                    var fileName = options ? options.fileName : '<<eval>>';
+                    return eval(code);
+                };
+            }
+        },
+        smalloc: {
+            kMaxLength: 0x3fffffff,
+            alloc: function () {
+            },
+            truncate: function () {
+            },
+            sliceOnto: function () {
+            }
+        },
+        buffer: {
+            setupBufferJS: function () {
+            }
+        },
+        fs: {
+            FSInitialize: function () {
+            }
+        },
+        constants: {},
+        timer_wrap: {
+            Timer: {
+                kOnTimeout: 0
+            }
+        },
+        cares_wrap: {},
+        uv: {},
+        pipe_wrap: {},
+        tcp_wrap: {},
+        stream_wrap: {},
+        tty_wrap: {
+            isTTY: function () {
+                return false;
+            },
+            guessHandleType: function () {
+                return 'TTY';
+            },
+            TTY: function () {
+                this.shutdown = function () {
+
+                };
+                this.readStart = function () {
+
+                };
+                this.readStop = function () {
+
+                }
+            },
+        },
     };
 
-    function binding(name) {
-        print('process.js: binding("' + name + '")');
-        if (name == 'natives') {
-            return natives;
-        }
-        if (name == 'contextify') {
-            return {
-                ContextifyScript: ContextifyScript
-            }
-        }
-        if (name == 'smalloc') {
-            return {
-                kMaxLength: 0x3fffffff,
-                alloc: function () {
-                },
-                truncate: function () {
-                },
-                sliceOnto: function () {
-                }
-            }
-        }
-        if (name == 'buffer') {
-            return {
-                setupBufferJS: function () {
-                }
-            }
-        }
 
+    function binding(name) {
+        print('process.js: binding(\'' + name + '\')');
+        if (bindings[name]) return bindings[name];
         throw new Error('No such module: ' + name);
     }
 
-
     var process = {};
-    process.binding = binding;
     process.moduleLoadList = [];
+    process.binding = binding;
+    process._setupNextTick = function () {
+    };
+    process.execPath = PROCESS.cwd() + '/dummy';
+    process.argv = Java.from(PROCESS.argv);
+    process.env = PROCESS.env;
+    process.cwd = function () {
+        return PROCESS.cwd;
+    };
+
 
     function NativeModule(id) {
         this.filename = id + '.js';

@@ -4,10 +4,7 @@ import jdk.nashorn.api.scripting.NashornScriptEngine;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import jdk.nashorn.api.scripting.ScriptUtils;
 
-import javax.script.Bindings;
-import javax.script.ScriptContext;
-import javax.script.ScriptEngine;
-import javax.script.ScriptException;
+import javax.script.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -21,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
 
 public class Main {
@@ -29,14 +27,19 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
-        main.run();
+        main.run(args);
     }
 
-    private void run() throws IOException, ScriptException, URISyntaxException {
+    private void run(String[] args) throws IOException, ScriptException, URISyntaxException {
+        Process process = new Process();
+        process.argv.add("untitled");
+        process.argv.addAll(asList(args));
+
         ScriptContext ctx = scriptEngine.getContext();
         ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("__NashornScriptEngine", scriptEngine);
         ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("__Main", this);
         ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("nativeModuleList", listNatives());
+        ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("PROCESS", process);
         URL resource = getClass().getResource("/init.js");
         try (Reader reader = new InputStreamReader(resource.openStream())) {
             scriptEngine.put(ScriptEngine.FILENAME, Paths.get(resource.getFile()).getFileName());
@@ -44,7 +47,7 @@ public class Main {
         }
     }
 
-    private List<String> listNatives() throws URISyntaxException, IOException {
+    public List<String> listNatives() throws URISyntaxException, IOException {
         URI uri = getClass().getResource("/lib").toURI();
         Path libPath = uri.getScheme().equals("file") ?
                 Paths.get(uri) :
