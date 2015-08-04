@@ -38,12 +38,7 @@ var bindings = {
             };
         }
     },
-    smalloc: {
-        kMaxLength: 0x3fffffff,
-        alloc: dummy('smalloc.alloc'),
-        truncate: dummy('smalloc.truncate'),
-        sliceOnto: dummy('smalloc.sliceOnto')
-    },
+    smalloc: Java.type('untitled.Smalloc'),
     buffer: {
         setupBufferJS: dummy('buffer.setupBufferJS')
     },
