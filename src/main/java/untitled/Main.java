@@ -27,18 +27,17 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         Main main = new Main();
-        main.run(args);
+        main.run(new String[] {"/home/andrey/workspace/untitled1/downloads/node-v0.12.7/deps/npm/bin/npm-cli.js"});
     }
 
     private void run(String[] args) throws IOException, ScriptException, URISyntaxException {
         Process process = new Process();
         process.argv.add("untitled");
         process.argv.addAll(asList(args));
+        process.env.put("NODE_DEBUG", "module");
 
         ScriptContext ctx = scriptEngine.getContext();
-        ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("__NashornScriptEngine", scriptEngine);
         ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("__Main", this);
-        ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("nativeModuleList", listNatives());
         ctx.getBindings(ScriptContext.ENGINE_SCOPE).put("PROCESS", process);
         URL resource = getClass().getResource("/init.js");
         try (Reader reader = new InputStreamReader(resource.openStream())) {
